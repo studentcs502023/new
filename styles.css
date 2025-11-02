@@ -1,0 +1,105 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #f0f4ff, #d9e7ff);
+  margin: 0;
+  padding: 20px;
+}
+
+/* Tabla principal */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Encabezados */
+#head {
+  background: #0077b6;
+  color: white;
+  padding: 15px;
+  font-size: 18px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+/* Filas */
+.estilos td {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+  text-align: center;
+}
+
+/* Caja con imagen y texto */
+.caja {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Imagen con efecto */
+#size {
+  width: 100%;
+  max-width: 250px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: transform 0.3s ease;
+border-radius: 5%;
+border: solid 0.5px  black;
+}
+
+#size:hover {
+  transform: scale(1.05);
+}
+
+/* Texto debajo de la imagen */
+#texto {
+  font-size: 15px;
+  color: #333;
+  margin: 0;
+}
+
+/* Links */
+.link a {
+  text-decoration: none;
+  color: #0077b6;
+  font-weight: bold;
+  font-size: 16px;
+  transition: color 0.3s ease;
+}
+
+.link a:hover {
+  color: #ff5722;
+}
+
+
+.estilos:nth-child(even) {
+  background: #f9f9f9;
+}
+
+.estilos:hover {
+  background: #f1faff;
+  transition: background 0.3s ease;
+}
+
+
+@media (max-width: 768px) {
+  table, thead, tbody, tr, td, th {
+    display: block;
+    width: 100%;
+  }
+
+  .estilos td {
+    padding: 15px;
+    text-align: left;
+  }
+
+  #size {
+    max-width: 100%;
+  }
+}
+
