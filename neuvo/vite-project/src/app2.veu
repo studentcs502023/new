@@ -1,0 +1,570 @@
+
+
+
+<script setup>
+import axios from "axios";
+import { ref } from "vue";
+import { defineProps } from "vue";
+// Modelo de Gemini
+const MODEL = "gemini-2.0-flash";
+
+// Input donde el usuario escribe la excusa
+const excusaBase = ref("");
+
+// Array de excusas generadas
+const excusas = ref(JSON.parse(localStorage.getItem("excusas")) || []);
+
+// 2️⃣ Guardar automáticamente en localStorage cada vez que cambie
+watch(excusas, (newVal) => {
+  localStorage.setItem("excusas", JSON.stringify(newVal));
+}, { deep: true });
+
+const showtime = ref("")
+
+const generarExcusa = async () => {
+  try {
+    const keys = [import.meta.env.VITE_API_KEY];
+
+    for (const key of keys) {
+      try {
+        const contenido = [
+          {
+            role: "user",
+            parts: [
+              {
+                text: `Eres un generador experto de excusas cómicas, absurdas...
+                Quiero que construyas una excusa inventada explicando por qué llegué tarde debido a: **${excusaBase.value}**.`
+              }
+            ]
+          }
+        ];
+
+        const res = await axios.post(
+          `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`,
+          { contents: contenido },
+          { headers: { "Content-Type": "application/json" } }
+        );
+
+        const texto = res.data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+        // Guardar la excusa como objeto en el array
+        excusas.value.push({
+          texto,
+          contador: 0,       // contador independiente
+          inicio: Date.now() // inicio independiente
+        });
+
+        console.log("🎭 Excusa generada:", texto);
+
+      } catch (error) {
+        console.warn("⚠️ Falló esta API key, probando la siguiente...");
+      }
+    }
+
+  } catch (err) {
+    console.error("❌ Error generando excusa:", err);
+  }
+};
+
+// Función para iniciar contador de 5 minutos para una excusa específica
+const iniciarContador = (excusa) => {
+  excusa.inicio = Date.now();
+  const intervalo = setInterval(() => {
+    excusa.contador = Math.floor((Date.now() - excusa.inicio) / 1000);
+
+    console.log(`Segundos transcurridos para esta excusa: ${excusa.contador}`);
+
+    if (excusa.contador > 0 && excusa.contador % 31 === 0) { // 5 minutos
+      console.log("🔥 ¡Han pasado 5 minutos para esta excusa!");
+      // Reiniciar para volver a contar otros 5 minutos
+      excusa.inicio = Date.now();
+      excusa.contador = 0;
+    }
+  }, 1000);
+};
+
+const props=defineProps({
+color:{  type: String,
+        default: "red"
+    },
+    textColor:{
+        type:String,
+        default: "yellow"},
+
+   
+
+})
+
+
+
+
+</script>
+
+<template>
+  <div class="p-4">
+    <div class="division">
+
+      <div class="one">
+    <h2> BIENVENIDO A TU postergacion de tareas</h2>
+
+    <!-- Input -->
+    <input
+      v-model="excusaBase"
+      placeholder="Ej: Perdí mi tarea, el gato se la comió."
+      class="border p-2 rounded w-full mb-3"
+    />
+
+    <!-- Botón generar -->
+    <button @click="generarExcusa" class="bg-blue-600 text-white px-4 py-2 rounded mb-4" :color="props.color">
+      Generar Excusa
+    </button>
+
+    <!-- Mostrar excusas -->
+    <div v-for="(excusa, index) in excusas" :key="index" class="border p-3 mb-3 rounded" :background="props.background">
+      <p><strong>Excusa {{ index + 1 }}:</strong> {{ excusa.texto }}</p>
+      <p>Segundos transcurridos: {{ excusa.contador }}</p>
+          <q-btn @click="iniciarContador(excusa)" :color="props.color" :text-color="props.textColor" label="5MIN+" />
+
+<img
+  class="imagen"
+  v-show="excusa.contador >= 30"
+  src="./junior.png"
+  alt="Imagen"
+/>
+
+<p v-if="excusa.contador >= 30">
+  ¡Felicidades, has subido de nivel!
+</p>
+
+
+      // <!-- <button @click="iniciarContador(excusa)" class="bg-green-500 text-white px-2 py-1 rounded">  </button>-->
+      </div>
+     
+    </div>
+
+    <div class="logros">        
+        <div class="img">
+          <div class="content">
+             <img src="./junior.png" alt="">
+             <h2>Postegador Junior</h2>
+          </div>
+          <div class="content">
+              <img src="./oficial.png" alt="">
+             <h2>postergador oficial</h2>
+          </div>
+
+          <div class="content">
+            <img src="./master.png" alt="">
+             <h2>postergador master</h2>
+          </div>
+
+          <div class="content">
+             <img src="./jefe.png" alt="">
+             <h2>postergador jefe</h2>
+          </div>
+          
+        </div>
+         
+    </div>
+  </div>
+  </div>
+
+</template>
+
+<style>
+.division{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+.img{
+  display: flex;
+  flex-direction: column;
+}
+img{
+height:auto;
+width: 200px;
+}
+.content{
+  display: flex;
+  flex-direction: row;
+}
+.imagen{
+  width: 100px;
+  height: auto;
+}
+
+</style>
+
+
+<script setup>
+// 👉 Importar axios (puede estar instalado vía npm)
+import axios from "axios";
+import { ref } from "vue";
+// import { defineProps, defineEmits } from "vue";
+// ⚙️ Modelo de Gemini
+const MODEL = "gemini-2.0-flash";
+// Este código recargará la página después de 5 segundos
+
+
+// // Variables existentes
+// const fechaActual = new Date();
+// const horas = fechaActual.getHours();
+// const minutos = fechaActual.getMinutes();
+// const segundos = fechaActual.getSeconds();
+// console.log(`${horas}:${minutos}:${segundos}`);
+
+// const horaformateada = fechaActual.toLocaleTimeString();
+// console.log("Hora formateada:", horaformateada);
+
+// // Contador en segundos transcurridos
+// const contador = ref(Number(localStorage.getItem("contador")) || 0);
+
+// // Guardar hora de inicio (timestamp) si no existe
+// let inicio = Number(localStorage.getItem("inicio")) || Date.now();
+// localStorage.setItem("inicio", inicio);
+
+// console.log("Contador actual:", contador.value);
+
+// // Intervalo para actualizar cada segundo
+// const intervalo = setInterval(() => {
+//     // Calcular segundos reales transcurridos
+//     contador.value = Math.floor((Date.now() - inicio) / 10);
+
+//     // Guardar en localStorage
+//     localStorage.setItem("contador", contador.value);
+
+//     console.log("Segundos transcurridos:", contador.value);
+
+//     // Cada vez que pasen 10 segundos
+//     cgundo
+
+
+function hora(){
+const fechaActual = new Date();
+const horaformateada = fechaActual.toLocaleTimeString();
+console.log("Hora formateada:", horaformateada);
+
+// -----------------------------
+// Contador en segundos
+// -----------------------------
+const contador = ref(Number(localStorage.getItem("contador")) || 0);
+
+// Guardar la hora de inicio si no existe
+let inicio = Number(localStorage.getItem("inicio")) || Date.now();
+localStorage.setItem("inicio", inicio);
+
+console.log("Contador actual:", contador.value);
+
+// -----------------------------
+// Intervalo de 1 segundo
+// -----------------------------
+const intervalo = setInterval(() => {
+    // Segundos reales transcurridos desde inicio
+    contador.value = Math.floor((Date.now() - inicio) / 1000);
+    
+    console.log("Segundos transcurridos:", contador.value);
+
+    // Cada 5 minutos (5*60 = 300 segundos)
+    if (contador.value > 0 && contador.value % 300 === 0) {
+        console.log("🔥 ¡Han pasado 5 minutos!");
+        
+        // Reiniciar contador para volver a contar otros 5 minutos
+        inicio = Date.now();
+        localStorage.setItem("inicio", inicio);
+        contador.value = 0;
+        localStorage.setItem("contador", contador.value);
+    }
+
+    // Guardar contador en localStorage
+    localStorage.setItem("contador", contador.value);
+
+}, 1000);
+}
+// let contador = fechaActual.getSeconds();
+// function iniciarContador(){
+// horaformateada =  `${horas}:${minutos}:${segundos}`;
+// console.log(horaformateada)
+// // if((horaformateada.getSeconds - contador) > 10){
+// //     console.log("decido postergar la tarea")
+// // }
+// }
+// iniciarContador()
+// const hora = localStorage.getItem(horaformateada)
+// console.log(hora)
+// 📥 Input donde el usuario escribe la razón (ej: "vecino tóxico")
+const excusaBase = ref("");
+let respuestaFinal = ref("")
+let respuestaFinal1 = ref("")
+let respuestaFinal2 = ref("")
+// 📤 Función para generar excusa humorística
+
+// let array=[]
+
+// array = [ 
+//     excusaBase, respuestaFinal, hora()
+// ]
+const generarExcusa = async () => {
+    try {
+        const keys = [
+            import.meta.env.VITE_API_KEY,
+            
+        ];
+
+
+
+        for (const key of keys) {
+            try {
+                const contenido = [
+                    {
+                        role: "user",
+                        parts: [{
+                            text: `Eres un generador experto de excusas cómicas, absurdas, con humor negro colombiano, 
+                            sarcasmo y exageración al estilo de comedia callejera.
+                            
+                            Quiero que construyas una excusa inventada, ridícula pero lógica,
+                            explicando por qué llegué tarde debido a: **${excusaBase.value}**.
+
+                            Reglas:
+                            - Tono: exagerado, callejero, sarcástico y con humor negro ligero.
+                            - Narrativa estilo "esto solo pasa en Colombia".
+                            - Entre 6 y 10 líneas máximo.
+                            - No nombres programas ni comediantes reales.
+                            - Hazlo tipo certificado o reporte oficial absurdo.
+                            - Incluye consecuencias, testigos y un sello/firma ficticia.
+                            - Debe ser única, original y graciosa.
+                            `
+                        }]
+                    }
+                ];
+
+                const res = await axios.post(
+                    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`,
+                    { contents: contenido },
+                    { headers: { "Content-Type": "application/json" } }
+                );
+
+                respuestaFinal.value = res.data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    respuestaFinal1.value = res.data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        respuestaFinal2.value = res.data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (respuestaFinal.value) {
+                    console.log("📦 RESPUESTA COMPLETA:", res.data);
+                    console.log("🎭 EXCUSA GENERADA:", respuestaFinal);
+                  
+                }
+
+            } catch (error) {
+                console.warn("⚠️ Falló esta API key, probando la siguiente...");
+            }
+        }
+
+        if (!respuestaFinal) {
+            console.error("❌ Ninguna key funcionó.");
+        }
+
+    } catch (err) {
+        console.error("❌ Error generando excusa:", err);
+    }
+};
+</script>
+
+<template>
+    <div>
+    <div class="p-4">
+        <h2>!BIENVENIDOs¡</h2>
+<h3>al generador de excusas absurdas</h3>
+        <!-- Input -->
+        <input v-model="excusaBase" placeholder="Ej:Perdi mi tarea el gato se la comío."
+            class="border p-2 rounded w-full mb-3" />
+
+        <!-- Botón -->
+         <div class="excusa">
+ <button @click="generarExcusa" class="bg-blue-600 text-white px-4 py-2 rounded">
+            Generar Excusa
+        </button>
+
+
+         </div>
+       <div class="conres">
+            <p >  {{ respuestaFinal }} </p>
+                     
+        </div>
+<q-btn v-if="respuestaFinal" @click="hora()" color="white" text-color="black" label="5min+" />
+        
+    </div>
+
+    <div class="p-4">
+        <h2>!BIENVENIDOs¡</h2>
+<h3>al generador de excusas absurdas</h3>
+        <!-- Input -->
+        <input v-model="excusaBase" placeholder="Ej:Perdi mi tarea el gato se la comío."
+            class="border p-2 rounded w-full mb-3" />
+
+        <!-- Botón -->
+         <div class="excusa">
+ <button @click="generarExcusa" class="bg-blue-600 text-white px-4 py-2 rounded">
+            Generar Excusa
+        </button>
+
+
+         </div>
+       <div class="conres">
+            <p >  {{ respuestaFinal }} </p>
+                     
+        </div>
+<q-btn v-if="respuestaFinal" @click="hora()" color="white" text-color="black" label="5min+" />
+        
+    </div>
+
+    <div class="p-4">
+        <h2>!BIENVENIDOs¡</h2>
+<h3>al generador de excusas absurdas</h3>
+        <!-- Input -->
+        <input v-model="excusaBase" placeholder="Ej:Perdi mi tarea el gato se la comío."
+            class="border p-2 rounded w-full mb-3" />
+
+        <!-- Botón -->
+         <div class="excusa">
+ <button @click="generarExcusa" class="bg-blue-600 text-white px-4 py-2 rounded">
+            Generar Excusa
+        </button>
+
+
+         </div>
+       <div class="conres">
+            <p >  {{ respuestaFinal }} </p>
+                     
+        </div>
+<q-btn v-if="respuestaFinal" @click="hora()" color="white" text-color="black" label="5min+" />
+        
+    </div>
+    </div>
+</template>
+
+
+
+<script setup>
+import axios from "axios";
+import { ref } from "vue";
+
+// Modelo de Gemini
+const MODEL = "gemini-2.0-flash";
+
+// Input donde el usuario escribe la excusa
+const excusaBase = ref("");
+
+// Array de excusas generadas
+const excusas = ref([]);
+
+// Función para generar excusa
+const generarExcusa = async () => {
+  try {
+    const keys = [import.meta.env.VITE_API_KEY];
+
+    for (const key of keys) {
+      try {
+        const contenido = [
+          {
+            role: "user",
+            parts: [
+              {
+                text: `Eres un generador experto de excusas cómicas, absurdas...
+                Quiero que construyas una excusa inventada explicando por qué llegué tarde debido a: **${excusaBase.value}**.`
+              }
+            ]
+          }
+        ];
+
+        const res = await axios.post(
+          `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`,
+          { contents: contenido },
+          { headers: { "Content-Type": "application/json" } }
+        );
+
+        const texto = res.data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+        // Guardar la excusa como objeto en el array
+        excusas.value.push({
+          texto,
+          contador: 0,       // contador independiente
+          inicio: Date.now() // inicio independiente
+        });
+
+        console.log("🎭 Excusa generada:", texto);
+
+      } catch (error) {
+        console.warn("⚠️ Falló esta API key, probando la siguiente...");
+      }
+    }
+
+  } catch (err) {
+    console.error("❌ Error generando excusa:", err);
+  }
+};
+
+// Función para iniciar contador de 5 minutos para una excusa específica
+const iniciarContador = (excusa) => {
+  excusa.inicio = Date.now();
+  const intervalo = setInterval(() => {
+    excusa.contador = Math.floor((Date.now() - excusa.inicio) / 1000);
+
+    console.log(`Segundos transcurridos para esta excusa: ${excusa.contador}`);
+
+    if (excusa.contador > 0 && excusa.contador % 300 === 0) { // 5 minutos
+      console.log("🔥 ¡Han pasado 5 minutos para esta excusa!");
+      // Reiniciar para volver a contar otros 5 minutos
+      excusa.inicio = Date.now();
+      excusa.contador = 0;
+    }
+  }, 1000);
+};
+</script>
+
+<template>
+  <div class="p-4">
+    <h2>Generador de excusas absurdas</h2>
+
+    <!-- Input -->
+    <input
+      v-model="excusaBase"
+      placeholder="Ej: Perdí mi tarea, el gato se la comió."
+      class="border p-2 rounded w-full mb-3"
+    />
+
+    <!-- Botón generar -->
+    <button @click="generarExcusa" class="bg-blue-600 text-white px-4 py-2 rounded mb-4">
+      Generar Excusa
+    </button>
+
+    <!-- Mostrar excusas -->
+    <div v-for="(excusa, index) in excusas" :key="index" class="border p-3 mb-3 rounded">
+      <p><strong>Excusa {{ index + 1 }}:</strong> {{ excusa.texto }}</p>
+      <p>Segundos transcurridos: {{ excusa.contador }}</p>
+      <button @click="iniciarContador(excusa)" class="bg-green-500 text-white px-2 py-1 rounded">
+        Iniciar contador 5min
+      </button>
+    </div>
+
+    <div class="logros">
+        <div class="img">
+            <img src="./po.png" alt="">
+            <img src="./junior.png" alt="">
+            <img src="./master.png" alt="">
+            <img src="./master1.png" alt="">
+        </div>
+    </div>
+  </div>
+</template>
+
+<style>
+
+.logros{
+
+    
+}
+img{
+height:auto;
+width: 200px;
+}
+
+</style>
